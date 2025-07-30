@@ -6,10 +6,8 @@ import com.bitchat.android.model.BitchatMessage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 /**
  * Simple persistence layer for private messages. Each peer gets its own file
@@ -31,6 +29,7 @@ class PrivateMessageRetentionService private constructor(private val context: Co
     }
 
     private val retentionDir = File(context.filesDir, "private_messages")
+    private val gson = Gson()
 
     init {
         if (!retentionDir.exists()) {
@@ -76,12 +75,9 @@ class PrivateMessageRetentionService private constructor(private val context: Co
     private fun loadMessagesFromFile(file: File): List<BitchatMessage> {
         if (!file.exists()) return emptyList()
         return try {
-            FileInputStream(file).use { fis ->
-                ObjectInputStream(fis).use { ois ->
-                    @Suppress("UNCHECKED_CAST")
-                    ois.readObject() as List<BitchatMessage>
-                }
-            }
+            val json = file.readText()
+            val type = object : TypeToken<List<BitchatMessage>>() {}.type
+            gson.fromJson<List<BitchatMessage>>(json, type) ?: emptyList()
         } catch (e: Exception) {
             Log.w(TAG, "Failed to load messages from ${file.name}", e)
             emptyList()
@@ -89,10 +85,11 @@ class PrivateMessageRetentionService private constructor(private val context: Co
     }
 
     private fun saveMessagesToFile(file: File, messages: List<BitchatMessage>) {
-        FileOutputStream(file).use { fos ->
-            ObjectOutputStream(fos).use { oos ->
-                oos.writeObject(messages)
-            }
+        try {
+            val json = gson.toJson(messages)
+            file.writeText(json)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to save messages to ${file.name}", e)
         }
     }
 }

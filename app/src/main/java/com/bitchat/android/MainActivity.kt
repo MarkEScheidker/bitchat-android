@@ -265,11 +265,22 @@ class MainActivity : ComponentActivity() {
     
     private fun checkOnboardingStatus() {
         Log.d("MainActivity", "Checking onboarding status")
-        
+
         lifecycleScope.launch {
             // Small delay to show the checking state
             delay(500)
-            
+
+            val prefs = PreferenceManager.getDefaultSharedPreferences(this@MainActivity)
+            val autoStart = prefs.getBoolean(PREF_AUTO_START_MESH_SERVICE, false)
+            val serviceRunning = isServiceRunning(this@MainActivity, ForegroundMeshService::class.java)
+
+            if (!permissionManager.isFirstTimeLaunch() && autoStart && serviceRunning) {
+                Log.d("MainActivity", "Mesh service already running - skipping onboarding")
+                meshService.delegate = chatViewModel
+                mainViewModel.updateOnboardingState(OnboardingState.COMPLETE)
+                return@launch
+            }
+
             // First check Bluetooth status (always required)
             checkBluetoothAndProceed()
         }
