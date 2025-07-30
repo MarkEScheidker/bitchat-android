@@ -48,6 +48,7 @@ object ForegroundServiceDelegate : BluetoothMeshDelegate {
         if (persistent) {
             meshService.connectionManager.setAppBackgroundState(false)
             meshService.sendBroadcastAnnounce()
+            meshService.ensureHandshakeWithPeers()
         }
 
         meshService.delegate = this

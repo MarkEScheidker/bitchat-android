@@ -277,6 +277,7 @@ class MainActivity : ComponentActivity() {
             if (!permissionManager.isFirstTimeLaunch() && autoStart && serviceRunning) {
                 Log.d("MainActivity", "Mesh service already running - skipping onboarding")
                 meshService.delegate = chatViewModel
+                meshService.ensureHandshakeWithPeers()
                 handleNotificationIntent(intent)
                 mainViewModel.updateOnboardingState(OnboardingState.COMPLETE)
                 return@launch
@@ -603,6 +604,7 @@ class MainActivity : ComponentActivity() {
                 
                 // Set up mesh service delegate and start services if needed
                 meshService.delegate = chatViewModel
+                meshService.ensureHandshakeWithPeers()
                 if (!meshService.isRunning()) {
                     meshService.startServices()
                 }

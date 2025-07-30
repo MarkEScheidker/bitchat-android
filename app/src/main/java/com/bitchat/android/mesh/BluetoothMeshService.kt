@@ -786,6 +786,27 @@ class BluetoothMeshService(private val context: Context) {
             }
         }
     }
+
+    /**
+     * Ensure Noise sessions are active for currently connected peers.
+     * Broadcast our identity and request handshakes from peers without
+     * established sessions. This helps recover private messaging after
+     * disconnects or app restarts when persistent mode is enabled.
+     */
+    fun ensureHandshakeWithPeers() {
+        serviceScope.launch {
+            try {
+                sendKeyExchangeToDevice()
+                peerManager.getActivePeerIDs().forEach { peerID ->
+                    if (!encryptionService.hasEstablishedSession(peerID)) {
+                        sendHandshakeRequest(peerID, 0u)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to ensure handshake with peers: ${e.message}")
+            }
+        }
+    }
     
     /**
      * Create a properly formatted NoiseIdentityAnnouncement exactly like iOS
