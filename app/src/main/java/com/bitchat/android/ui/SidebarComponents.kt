@@ -29,6 +29,7 @@ import com.bitchat.android.stopMeshForegroundService
 import com.bitchat.android.isServiceRunning
 import com.bitchat.android.ForegroundMeshService
 import com.bitchat.android.ui.PREF_AUTO_START_MESH_SERVICE
+import com.bitchat.android.ui.PREF_START_ON_BOOT
 
 
 /**
@@ -57,6 +58,7 @@ fun SidebarOverlay(
     val context = LocalContext.current
     val sharedPreferences = remember { PreferenceManager.getDefaultSharedPreferences(context) }
     var isAutoStartEnabled by remember { mutableStateOf(sharedPreferences.getBoolean(PREF_AUTO_START_MESH_SERVICE, false)) }
+    var isStartOnBootEnabled by remember { mutableStateOf(sharedPreferences.getBoolean(PREF_START_ON_BOOT, false)) }
     
     Box(
         modifier = modifier
@@ -140,6 +142,7 @@ fun SidebarOverlay(
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
                 SettingsSection(
                     isAutoStartEnabled = isAutoStartEnabled,
+                    isStartOnBootEnabled = isStartOnBootEnabled,
                     onToggleAutoStart = { newState ->
                         isAutoStartEnabled = newState
                         with(sharedPreferences.edit()) {
@@ -162,6 +165,13 @@ fun SidebarOverlay(
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
+                    },
+                    onToggleStartOnBoot = { newState ->
+                        isStartOnBootEnabled = newState
+                        with(sharedPreferences.edit()) {
+                            putBoolean(PREF_START_ON_BOOT, newState)
+                            apply()
+                        }
                     }
                 )
                 Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
@@ -173,7 +183,9 @@ fun SidebarOverlay(
 @Composable
 private fun SettingsSection(
     isAutoStartEnabled: Boolean,
-    onToggleAutoStart: (Boolean) -> Unit
+    isStartOnBootEnabled: Boolean,
+    onToggleAutoStart: (Boolean) -> Unit,
+    onToggleStartOnBoot: (Boolean) -> Unit
 ) {
     val colorScheme = MaterialTheme.colorScheme
 
@@ -223,6 +235,34 @@ private fun SettingsSection(
                 checked = isAutoStartEnabled,
                 onCheckedChange = null
             )
+        }
+
+        if (isAutoStartEnabled) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onToggleStartOnBoot(!isStartOnBootEnabled) }
+                    .padding(start = 8.dp, end = 8.dp, top = 0.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(Modifier.weight(1f).padding(end = 8.dp)) {
+                    Text(
+                        text = stringResource(R.string.settings_start_on_boot_title),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = colorScheme.onSurface
+                    )
+                    Text(
+                        text = stringResource(R.string.settings_start_on_boot_summary),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                }
+                Switch(
+                    checked = isStartOnBootEnabled,
+                    onCheckedChange = null
+                )
+            }
         }
     }
 }

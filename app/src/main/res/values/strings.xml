@@ -45,8 +45,10 @@
 
     <!-- Sidebar Settings -->
     <string name="settings_section_title">Settings</string>
-    <string name="settings_auto_start_title">Persistent Network Mode</string>
+    <string name="settings_auto_start_title">Persistent Network</string>
     <string name="settings_auto_start_summary">Keep mesh network active in background.</string>
     <string name="settings_auto_start_enabled_toast">Persistent mode enabled.</string>
     <string name="settings_auto_start_disabled_toast">Persistent mode disabled.</string>
+    <string name="settings_start_on_boot_title">Start On Boot</string>
+    <string name="settings_start_on_boot_summary">Automatically start mesh network after device reboot.</string>
 </resources>
