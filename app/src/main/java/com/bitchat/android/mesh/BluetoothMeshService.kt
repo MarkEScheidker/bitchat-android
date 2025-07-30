@@ -14,6 +14,7 @@ import com.bitchat.android.protocol.BitchatPacket
 import com.bitchat.android.protocol.MessageType
 import com.bitchat.android.protocol.SpecialRecipients
 import com.bitchat.android.util.toHexString
+import com.bitchat.android.util.PeerIdStore
 import kotlinx.coroutines.*
 import java.util.*
 import kotlin.math.sign
@@ -39,8 +40,8 @@ class BluetoothMeshService(private val context: Context) {
         private const val MAX_TTL: UByte = 7u
     }
     
-    // My peer identification - same format as iOS
-    val myPeerID: String = generateCompatiblePeerID()
+    // My peer identification - persisted across app restarts
+    val myPeerID: String = PeerIdStore.getOrCreatePeerId(context) { generateCompatiblePeerID() }
     
     // Core components - each handling specific responsibilities
     private val encryptionService = EncryptionService(context)
