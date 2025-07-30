@@ -3,8 +3,9 @@ package com.bitchat.android
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import androidx.preference.PreferenceManager
 import androidx.core.content.ContextCompat
+import androidx.preference.PreferenceManager
+import com.bitchat.android.ui.PREF_AUTO_START_MESH_SERVICE
 import android.os.Build
 import android.content.pm.PackageManager
 

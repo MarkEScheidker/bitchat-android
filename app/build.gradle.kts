@@ -87,6 +87,7 @@ dependencies {
     
     // Compression
     implementation(libs.lz4.java)
+    implementation(libs.androidx.preference.ktx)
     
     // Security preferences
     implementation(libs.androidx.security.crypto)
