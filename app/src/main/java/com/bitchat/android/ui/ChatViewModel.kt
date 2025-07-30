@@ -130,6 +130,11 @@ class ChatViewModel(
                 }
             }
         }
+
+        // Load currently connected peers from the mesh service
+        val connected = meshService.getConnectedPeers()
+        state.setConnectedPeers(connected)
+        state.setIsConnected(connected.isNotEmpty())
         
         // Initialize session state monitoring
         initializeSessionStateMonitoring()

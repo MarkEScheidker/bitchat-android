@@ -858,6 +858,11 @@ class BluetoothMeshService(private val context: Context) {
      * Get peer RSSI values  
      */
     fun getPeerRSSI(): Map<String, Int> = peerManager.getAllPeerRSSI()
+
+    /**
+     * Get list of currently connected peer IDs
+     */
+    fun getConnectedPeers(): List<String> = peerManager.getActivePeerIDs()
     
     /**
      * Check if we have an established Noise session with a peer  
