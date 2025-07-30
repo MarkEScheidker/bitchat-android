@@ -20,6 +20,14 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.preference.PreferenceManager
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
+import com.bitchat.android.startMeshForegroundService
+import com.bitchat.android.stopMeshForegroundService
+import com.bitchat.android.isServiceRunning
+import com.bitchat.android.ForegroundMeshService
+import com.bitchat.android.ui.PREF_AUTO_START_MESH_SERVICE
 
 
 /**
@@ -44,6 +52,10 @@ fun SidebarOverlay(
     // Get peer data from mesh service
     val peerNicknames = viewModel.meshService.getPeerNicknames()
     val peerRSSI = viewModel.meshService.getPeerRSSI()
+
+    val context = LocalContext.current
+    val sharedPreferences = remember { PreferenceManager.getDefaultSharedPreferences(context) }
+    var isAutoStartEnabled by remember { mutableStateOf(sharedPreferences.getBoolean(PREF_AUTO_START_MESH_SERVICE, false)) }
     
     Box(
         modifier = modifier
@@ -121,8 +133,87 @@ fun SidebarOverlay(
                             }
                         )
                     }
+
+                    item {
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                        SettingsSection(
+                            isAutoStartEnabled = isAutoStartEnabled,
+                            onToggleAutoStart = { newState ->
+                                isAutoStartEnabled = newState
+                                with(sharedPreferences.edit()) {
+                                    putBoolean(PREF_AUTO_START_MESH_SERVICE, newState)
+                                    apply()
+                                }
+
+                                if (newState) {
+                                    startMeshForegroundService(context)
+                                    Toast.makeText(context, context.getString(R.string.settings_auto_start_enabled_toast), Toast.LENGTH_SHORT).show()
+                                } else {
+                                    stopMeshForegroundService(context)
+                                    Toast.makeText(context, context.getString(R.string.settings_auto_start_disabled_toast), Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        )
+                    }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun SettingsSection(
+    isAutoStartEnabled: Boolean,
+    onToggleAutoStart: (Boolean) -> Unit
+) {
+    val colorScheme = MaterialTheme.colorScheme
+
+    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Settings,
+                contentDescription = null,
+                modifier = Modifier.size(10.dp),
+                tint = colorScheme.onSurface.copy(alpha = 0.6f)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = stringResource(id = R.string.settings_section_title).uppercase(),
+                style = MaterialTheme.typography.labelSmall,
+                color = colorScheme.onSurface.copy(alpha = 0.6f),
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onToggleAutoStart(!isAutoStartEnabled) }
+                .padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(Modifier.weight(1f).padding(end = 8.dp)) {
+                Text(
+                    text = stringResource(R.string.settings_auto_start_title),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colorScheme.onSurface
+                )
+                Text(
+                    text = stringResource(R.string.settings_auto_start_summary),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = colorScheme.onSurface.copy(alpha = 0.7f)
+                )
+            }
+            Switch(
+                checked = isAutoStartEnabled,
+                onCheckedChange = null
+            )
         }
     }
 }

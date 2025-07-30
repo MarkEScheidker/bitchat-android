@@ -54,6 +54,8 @@ class BluetoothMeshService(private val context: Context) {
     
     // Service state management
     private var isActive = false
+
+    fun isRunning(): Boolean = isActive
     
     // Delegate for message callbacks (maintains same interface)
     var delegate: BluetoothMeshDelegate? = null

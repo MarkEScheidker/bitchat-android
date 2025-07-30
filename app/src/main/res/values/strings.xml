@@ -36,4 +36,17 @@
     <string name="battery_optimization_continue">Continue</string>
     <string name="retry">Retry</string>
     <string name="skip">Skip</string>
+
+    <!-- Mesh Foreground Service -->
+    <string name="mesh_service_notification_title">Bitchat Active</string>
+    <string name="mesh_service_notification_text">Bluetooth mesh network is running.</string>
+    <string name="mesh_service_channel_name">Bitchat Mesh Service</string>
+    <string name="mesh_service_channel_description">Background service for Bluetooth mesh.</string>
+
+    <!-- Sidebar Settings -->
+    <string name="settings_section_title">Settings</string>
+    <string name="settings_auto_start_title">Persistent Network Mode</string>
+    <string name="settings_auto_start_summary">Keep mesh network active in background.</string>
+    <string name="settings_auto_start_enabled_toast">Persistent mode enabled.</string>
+    <string name="settings_auto_start_disabled_toast">Persistent mode disabled.</string>
 </resources>

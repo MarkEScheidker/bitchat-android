@@ -19,6 +19,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.Lifecycle
 import com.bitchat.android.mesh.BluetoothMeshService
+import androidx.preference.PreferenceManager
+import com.bitchat.android.MeshServiceHolder
+import com.bitchat.android.startMeshForegroundService
+import com.bitchat.android.stopMeshForegroundService
+import com.bitchat.android.isServiceRunning
+import com.bitchat.android.ForegroundMeshService
+import com.bitchat.android.ui.PREF_AUTO_START_MESH_SERVICE
 import com.bitchat.android.onboarding.BluetoothCheckScreen
 import com.bitchat.android.onboarding.BluetoothStatus
 import com.bitchat.android.onboarding.BluetoothStatusManager
@@ -66,7 +73,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         
         // Initialize core mesh service first
-        meshService = BluetoothMeshService(this)
+        meshService = MeshServiceHolder.getInstance(this)
         
         // Initialize permission management
         permissionManager = PermissionManager(this)
@@ -120,6 +127,8 @@ class MainActivity : ComponentActivity() {
         if (mainViewModel.onboardingState.value == OnboardingState.CHECKING) {
             checkOnboardingStatus()
         }
+
+        checkAndStartMeshServiceIfNeededOnAppLaunch()
     }
     
     @Composable
@@ -262,6 +271,16 @@ class MainActivity : ComponentActivity() {
             
             // First check Bluetooth status (always required)
             checkBluetoothAndProceed()
+        }
+    }
+
+    private fun checkAndStartMeshServiceIfNeededOnAppLaunch() {
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        val isAutoStartEnabled = sharedPreferences.getBoolean(PREF_AUTO_START_MESH_SERVICE, false)
+
+        if (isAutoStartEnabled && !isServiceRunning(this, ForegroundMeshService::class.java)) {
+            Log.d("MainActivity", "Auto-start is ON & service not running. Starting ForegroundMeshService.")
+            startMeshForegroundService(this)
         }
     }
     
@@ -674,11 +693,13 @@ class MainActivity : ComponentActivity() {
         
         // Stop mesh services if app was fully initialized
         if (mainViewModel.onboardingState.value == OnboardingState.COMPLETE) {
-            try {
-                meshService.stopServices()
-                Log.d("MainActivity", "Mesh services stopped successfully")
-            } catch (e: Exception) {
-                Log.w("MainActivity", "Error stopping mesh services in onDestroy: ${e.message}")
+            if (!isServiceRunning(this, ForegroundMeshService::class.java)) {
+                try {
+                    meshService.stopServices()
+                    Log.d("MainActivity", "Mesh services stopped successfully")
+                } catch (e: Exception) {
+                    Log.w("MainActivity", "Error stopping mesh services in onDestroy: ${e.message}")
+                }
             }
         }
     }
