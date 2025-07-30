@@ -6,8 +6,7 @@ import android.content.Intent
 import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
 import com.bitchat.android.ui.PREF_AUTO_START_MESH_SERVICE
-import android.os.Build
-import android.content.pm.PackageManager
+import android.util.Log
 
 class BootCompletedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -15,12 +14,9 @@ class BootCompletedReceiver : BroadcastReceiver() {
             val prefs = PreferenceManager.getDefaultSharedPreferences(context)
             val enabled = prefs.getBoolean(PREF_AUTO_START_MESH_SERVICE, false)
             if (enabled) {
-                val hasPermission = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-                    ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
-                if (hasPermission) {
-                    val serviceIntent = Intent(context, ForegroundMeshService::class.java)
-                    ContextCompat.startForegroundService(context, serviceIntent)
-                }
+                Log.d("BootCompletedReceiver", "Starting mesh service on boot")
+                val serviceIntent = Intent(context, ForegroundMeshService::class.java)
+                ContextCompat.startForegroundService(context, serviceIntent)
             }
         }
     }

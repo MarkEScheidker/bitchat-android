@@ -24,7 +24,9 @@ class ForegroundMeshService : Service() {
         super.onCreate()
         meshService = MeshServiceHolder.getInstance(applicationContext)
         serviceDelegate.init(applicationContext)
-        serviceDelegate.attach(meshService)
+        if (meshService.delegate == null) {
+            serviceDelegate.attach(meshService)
+        }
         createNotificationChannel()
     }
 
@@ -32,7 +34,9 @@ class ForegroundMeshService : Service() {
         if (!meshService.isRunning()) {
             meshService.startServices()
         }
-        serviceDelegate.attach(meshService)
+        if (meshService.delegate == null || meshService.delegate === serviceDelegate) {
+            serviceDelegate.attach(meshService)
+        }
         startForeground(NOTIFICATION_ID, buildNotification())
         return START_STICKY
     }
