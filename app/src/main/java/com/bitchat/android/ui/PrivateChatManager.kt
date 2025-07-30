@@ -5,6 +5,9 @@ import com.bitchat.android.model.DeliveryStatus
 import com.bitchat.android.mesh.PeerFingerprintManager
 import java.util.*
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /**
  * Interface for Noise session operations needed by PrivateChatManager
@@ -26,6 +29,8 @@ class PrivateChatManager(
     private val state: ChatState,
     private val messageManager: MessageManager,
     private val dataManager: DataManager,
+    private val messageStore: com.bitchat.android.services.PrivateMessageRetentionService,
+    private val scope: kotlinx.coroutines.CoroutineScope,
     private val noiseSessionDelegate: NoiseSessionDelegate? = null
 ) {
     
@@ -106,6 +111,7 @@ class PrivateChatManager(
         )
         
         messageManager.addPrivateMessage(peerID, message)
+        scope.launch(Dispatchers.IO) { messageStore.saveMessage(peerID, message) }
         onSendMessage(content, peerID, recipientNickname ?: "", message.id)
         
         return true
@@ -266,6 +272,7 @@ class PrivateChatManager(
             if (!isPeerBlocked(senderPeerID)) {
                 // Add to private messages
                 messageManager.addPrivateMessage(senderPeerID, message)
+                scope.launch(Dispatchers.IO) { messageStore.saveMessage(senderPeerID, message) }
                 
                 // Track as unread for read receipt purposes
                 val unreadList = unreadReceivedMessages.getOrPut(senderPeerID) { mutableListOf() }

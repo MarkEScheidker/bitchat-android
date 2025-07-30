@@ -13,6 +13,7 @@ import com.bitchat.android.model.DeliveryAck
 import com.bitchat.android.model.ReadReceipt
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import com.bitchat.android.services.PrivateMessageRetentionService
 import java.util.*
 import kotlin.random.Random
 
@@ -42,7 +43,8 @@ class ChatViewModel(
         override fun getMyPeerID(): String = meshService.myPeerID
     }
     
-    val privateChatManager = PrivateChatManager(state, messageManager, dataManager, noiseSessionDelegate)
+    private val privateMessageStore = com.bitchat.android.services.PrivateMessageRetentionService.getInstance(application.applicationContext)
+    val privateChatManager = PrivateChatManager(state, messageManager, dataManager, privateMessageStore, viewModelScope, noiseSessionDelegate)
     private val commandProcessor = CommandProcessor(state, messageManager, channelManager, privateChatManager)
     private val notificationManager = NotificationManager(application.applicationContext)
     
@@ -112,10 +114,22 @@ class ChatViewModel(
         dataManager.loadFavorites()
         state.setFavoritePeers(dataManager.favoritePeers)
         dataManager.loadBlockedUsers()
-        
+
         // Log all favorites at startup
         dataManager.logAllFavorites()
         logCurrentFavoriteState()
+
+        // Load stored private messages
+        viewModelScope.launch {
+            privateMessageStore.getPeers().forEach { peer ->
+                val messages = privateMessageStore.loadMessages(peer)
+                if (messages.isNotEmpty()) {
+                    val current = state.getPrivateChatsValue().toMutableMap()
+                    current[peer] = messages
+                    state.setPrivateChats(current)
+                }
+            }
+        }
         
         // Initialize session state monitoring
         initializeSessionStateMonitoring()
