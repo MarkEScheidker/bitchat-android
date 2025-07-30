@@ -5,6 +5,8 @@ import android.content.SharedPreferences
 import android.util.Log
 import com.google.gson.Gson
 import kotlin.random.Random
+import com.bitchat.android.ui.PREF_AUTO_START_MESH_SERVICE
+import com.bitchat.android.ui.PREF_START_ON_BOOT
 
 /**
  * Handles data persistence operations for the chat system
@@ -195,11 +197,23 @@ class DataManager(private val context: Context) {
     
     // MARK: - Emergency Clear
     
-    fun clearAllData() {
+    fun clearAllData(preservePersistentSettings: Boolean = false) {
         _channelCreators.clear()
         _favoritePeers.clear()
         _blockedUsers.clear()
         _channelMembers.clear()
+
+        val persistent = prefs.getBoolean(PREF_AUTO_START_MESH_SERVICE, false)
+        val startOnBoot = prefs.getBoolean(PREF_START_ON_BOOT, false)
+
         prefs.edit().clear().apply()
+
+        if (preservePersistentSettings) {
+            prefs.edit().apply {
+                putBoolean(PREF_AUTO_START_MESH_SERVICE, persistent)
+                putBoolean(PREF_START_ON_BOOT, startOnBoot)
+                apply()
+            }
+        }
     }
 }

@@ -413,11 +413,12 @@ class ChatViewModel(
     // MARK: - Emergency Clear
     
     fun panicClearAllData() {
-        // Clear all managers
+        // Clear all managers and stored messages
         messageManager.clearAllMessages()
         channelManager.clearAllChannels()
         privateChatManager.clearAllPrivateChats()
-        dataManager.clearAllData()
+        privateMessageStore.clearAllMessages()
+        dataManager.clearAllData(preservePersistentSettings = true)
         
         // Reset nickname
         val newNickname = "anon${Random.nextInt(1000, 9999)}"

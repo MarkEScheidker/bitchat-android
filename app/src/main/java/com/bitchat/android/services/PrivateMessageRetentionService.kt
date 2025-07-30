@@ -37,6 +37,16 @@ class PrivateMessageRetentionService private constructor(private val context: Co
         }
     }
 
+    fun clearAllMessages() {
+        retentionDir.listFiles()?.forEach { file ->
+            try {
+                file.delete()
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to delete ${file.name}", e)
+            }
+        }
+    }
+
     suspend fun saveMessage(peerID: String, message: BitchatMessage) = withContext(Dispatchers.IO) {
         try {
             val file = getPeerFile(peerID)
