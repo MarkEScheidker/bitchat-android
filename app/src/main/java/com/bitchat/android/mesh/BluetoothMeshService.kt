@@ -32,15 +32,24 @@ import kotlin.random.Random
  * - BluetoothConnectionManager: BLE connections and GATT operations
  * - PacketProcessor: Incoming packet routing
  */
-class BluetoothMeshService(private val context: Context) {
+class BluetoothMeshService(
+    private val context: Context,
+    peerId: String? = null
+) {
     
     companion object {
         private const val TAG = "BluetoothMeshService"
         private const val MAX_TTL: UByte = 7u
     }
     
+    // Helper to persist peer ID across sessions
+    private val peerIdStore = com.bitchat.android.util.PeerIdStore(context)
+
     // My peer identification - same format as iOS
-    val myPeerID: String = generateCompatiblePeerID()
+    val myPeerID: String =
+        peerId ?: peerIdStore.loadPeerId() ?: generateCompatiblePeerID().also {
+            peerIdStore.savePeerId(it)
+        }
     
     // Core components - each handling specific responsibilities
     private val encryptionService = EncryptionService(context)
