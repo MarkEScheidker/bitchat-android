@@ -10,10 +10,11 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.bitchat.android.mesh.BluetoothMeshService
+import com.bitchat.android.ForegroundServiceDelegate
 
 class ForegroundMeshService : Service() {
     private lateinit var meshService: BluetoothMeshService
-
+    private val serviceDelegate = ForegroundServiceDelegate
     companion object {
         const val CHANNEL_ID = "MeshForegroundService"
         const val NOTIFICATION_ID = 1
@@ -22,6 +23,8 @@ class ForegroundMeshService : Service() {
     override fun onCreate() {
         super.onCreate()
         meshService = MeshServiceHolder.getInstance(applicationContext)
+        serviceDelegate.init(applicationContext)
+        serviceDelegate.attach(meshService)
         createNotificationChannel()
     }
 
@@ -29,6 +32,7 @@ class ForegroundMeshService : Service() {
         if (!meshService.isRunning()) {
             meshService.startServices()
         }
+        serviceDelegate.attach(meshService)
         startForeground(NOTIFICATION_ID, buildNotification())
         return START_STICKY
     }

@@ -25,6 +25,7 @@ import com.bitchat.android.startMeshForegroundService
 import com.bitchat.android.stopMeshForegroundService
 import com.bitchat.android.isServiceRunning
 import com.bitchat.android.ForegroundMeshService
+import com.bitchat.android.ForegroundServiceDelegate
 import com.bitchat.android.ui.PREF_AUTO_START_MESH_SERVICE
 import com.bitchat.android.onboarding.BluetoothCheckScreen
 import com.bitchat.android.onboarding.BluetoothStatus
@@ -588,9 +589,11 @@ class MainActivity : ComponentActivity() {
                     return@launch
                 }
                 
-                // Set up mesh service delegate and start services
+                // Set up mesh service delegate and start services if needed
                 meshService.delegate = chatViewModel
-                meshService.startServices()
+                if (!meshService.isRunning()) {
+                    meshService.startServices()
+                }
                 
                 Log.d("MainActivity", "Mesh service started successfully")
                 
@@ -691,7 +694,7 @@ class MainActivity : ComponentActivity() {
             Log.w("MainActivity", "Error cleaning up location status manager: ${e.message}")
         }
         
-        // Stop mesh services if app was fully initialized
+        // Stop mesh or restore service delegate based on foreground service state
         if (mainViewModel.onboardingState.value == OnboardingState.COMPLETE) {
             if (!isServiceRunning(this, ForegroundMeshService::class.java)) {
                 try {
@@ -700,6 +703,9 @@ class MainActivity : ComponentActivity() {
                 } catch (e: Exception) {
                     Log.w("MainActivity", "Error stopping mesh services in onDestroy: ${e.message}")
                 }
+            } else {
+                // App closing but service stays - reattach service delegate
+                ForegroundServiceDelegate.attach(meshService)
             }
         }
     }

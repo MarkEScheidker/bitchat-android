@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.preference.PreferenceManager
 import androidx.compose.ui.platform.LocalContext
 import android.widget.Toast
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import com.bitchat.android.startMeshForegroundService
 import com.bitchat.android.stopMeshForegroundService
 import com.bitchat.android.isServiceRunning
@@ -88,9 +89,9 @@ fun SidebarOverlay(
 
                 HorizontalDivider()
                 
-                // Scrollable content
+                // Scrollable peer/channel list
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -134,28 +135,36 @@ fun SidebarOverlay(
                         )
                     }
 
-                    item {
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-                        SettingsSection(
-                            isAutoStartEnabled = isAutoStartEnabled,
-                            onToggleAutoStart = { newState ->
-                                isAutoStartEnabled = newState
-                                with(sharedPreferences.edit()) {
-                                    putBoolean(PREF_AUTO_START_MESH_SERVICE, newState)
-                                    apply()
-                                }
-
-                                if (newState) {
-                                    startMeshForegroundService(context)
-                                    Toast.makeText(context, context.getString(R.string.settings_auto_start_enabled_toast), Toast.LENGTH_SHORT).show()
-                                } else {
-                                    stopMeshForegroundService(context)
-                                    Toast.makeText(context, context.getString(R.string.settings_auto_start_disabled_toast), Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        )
-                    }
                 }
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                SettingsSection(
+                    isAutoStartEnabled = isAutoStartEnabled,
+                    onToggleAutoStart = { newState ->
+                        isAutoStartEnabled = newState
+                        with(sharedPreferences.edit()) {
+                            putBoolean(PREF_AUTO_START_MESH_SERVICE, newState)
+                            apply()
+                        }
+
+                        if (newState) {
+                            startMeshForegroundService(context)
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.settings_auto_start_enabled_toast),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            stopMeshForegroundService(context)
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.settings_auto_start_disabled_toast),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                )
+                Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
             }
         }
     }
