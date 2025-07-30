@@ -11,14 +11,22 @@ import android.util.Log
 
 class BootCompletedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
+        if (intent.action == Intent.ACTION_BOOT_COMPLETED ||
+            intent.action == Intent.ACTION_LOCKED_BOOT_COMPLETED
+        ) {
             val prefs = PreferenceManager.getDefaultSharedPreferences(context)
             val persistent = prefs.getBoolean(PREF_AUTO_START_MESH_SERVICE, false)
             val startOnBoot = prefs.getBoolean(PREF_START_ON_BOOT, false)
             if (persistent && startOnBoot) {
                 Log.d("BootCompletedReceiver", "Starting mesh service on boot")
-                val serviceIntent = Intent(context, ForegroundMeshService::class.java)
-                ContextCompat.startForegroundService(context, serviceIntent)
+                val appContext = context.applicationContext
+                val serviceIntent = Intent(appContext, ForegroundMeshService::class.java)
+                ContextCompat.startForegroundService(appContext, serviceIntent)
+            } else {
+                Log.d(
+                    "BootCompletedReceiver",
+                    "Not starting service - persistent=$persistent startOnBoot=$startOnBoot"
+                )
             }
         }
     }
