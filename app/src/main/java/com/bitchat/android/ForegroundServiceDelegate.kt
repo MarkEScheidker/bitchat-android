@@ -7,6 +7,8 @@ import com.bitchat.android.model.DeliveryAck
 import com.bitchat.android.model.ReadReceipt
 import com.bitchat.android.ui.NotificationManager
 import com.bitchat.android.ui.DataManager
+import androidx.preference.PreferenceManager
+import com.bitchat.android.ui.PREF_AUTO_START_MESH_SERVICE
 import com.bitchat.android.services.PrivateMessageRetentionService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +20,7 @@ import kotlinx.coroutines.launch
  * when the app UI is not active.
  */
 object ForegroundServiceDelegate : BluetoothMeshDelegate {
+    private lateinit var appContext: Context
     private lateinit var notificationManager: NotificationManager
     private lateinit var dataManager: DataManager
     private lateinit var messageStore: PrivateMessageRetentionService
@@ -25,7 +28,7 @@ object ForegroundServiceDelegate : BluetoothMeshDelegate {
     private var messageStoreScope: CoroutineScope? = null
 
     fun init(context: Context) {
-        val appContext = context.applicationContext
+        appContext = context.applicationContext
         notificationManager = NotificationManager(appContext)
         dataManager = DataManager(appContext)
         messageStore = PrivateMessageRetentionService.getInstance(appContext)
@@ -39,6 +42,14 @@ object ForegroundServiceDelegate : BluetoothMeshDelegate {
         if (messageStoreScope == null) {
             messageStoreScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
         }
+
+        val prefs = PreferenceManager.getDefaultSharedPreferences(appContext)
+        val persistent = prefs.getBoolean(PREF_AUTO_START_MESH_SERVICE, false)
+        if (persistent) {
+            meshService.connectionManager.setAppBackgroundState(false)
+            meshService.sendBroadcastAnnounce()
+        }
+
         meshService.delegate = this
     }
 

@@ -716,7 +716,12 @@ class MainActivity : ComponentActivity() {
                     Log.w("MainActivity", "Error stopping mesh services in onDestroy: ${e.message}")
                 }
             } else {
-                // App closing but service stays - reattach service delegate
+                // App closing but service stays - adjust power mode and reattach delegate
+                val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+                val persistent = prefs.getBoolean(PREF_AUTO_START_MESH_SERVICE, false)
+                if (persistent) {
+                    meshService.connectionManager.setAppBackgroundState(false)
+                }
                 ForegroundServiceDelegate.attach(meshService)
             }
         }
