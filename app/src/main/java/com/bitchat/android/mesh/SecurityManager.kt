@@ -104,8 +104,8 @@ class SecurityManager(private val encryptionService: EncryptionService, private 
         if (peerID == myPeerID) return false
 
         if (encryptionService.hasEstablishedSession(peerID)) {
-            Log.d(TAG, "Handshake already completed with $peerID")
-            return true
+            Log.d(TAG, "Handshake already completed with $peerID - resetting session")
+            encryptionService.removePeer(peerID)
         }
         
         if (packet.payload.isEmpty()) {

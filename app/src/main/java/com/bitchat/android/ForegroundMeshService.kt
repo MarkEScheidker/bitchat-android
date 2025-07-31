@@ -28,6 +28,7 @@ class ForegroundMeshService : Service() {
             serviceDelegate.attach(meshService)
         }
         createNotificationChannel()
+        startForeground(NOTIFICATION_ID, buildNotification())
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
